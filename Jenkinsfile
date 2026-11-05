@@ -12,42 +12,54 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo 'Java project is ready'
-                bat 'cd'
+                echo 'Checking out source code from GitHub'
                 bat 'dir'
             }
         }
 
         stage('Maven Build and Test') {
             steps {
-                bat 'mvn -f C:\\CI\\jenkins-ci-demo\\pom.xml clean test'
+                echo 'Running Maven tests'
+                bat 'mvn clean test'
             }
         }
 
         stage('Gradle Build and Test') {
             steps {
-                bat 'gradle -p C:\\CI\\jenkins-ci-demo clean test'
+                echo 'Running Gradle tests'
+                bat 'gradle clean test'
             }
         }
 
         stage('Maven Package') {
             steps {
-                bat 'mvn -f C:\\CI\\jenkins-ci-demo\\pom.xml package'
+                echo 'Packaging Java application'
+                bat 'mvn package'
+            }
+        }
+
+        stage('Archive JAR Artifact') {
+            steps {
+                archiveArtifacts artifacts: 'target/*.jar',
+                                 fingerprint: true
             }
         }
     }
 
     post {
         always {
-            junit allowEmptyResults: true,
-                testResults: 'C:/CI/jenkins-ci-demo/target/surefire-reports/*.xml'
+            echo 'Publishing test reports'
 
             junit allowEmptyResults: true,
-                testResults: 'C:/CI/jenkins-ci-demo/build/test-results/test/*.xml'
+                testResults: 'target/surefire-reports/*.xml'
+
+            junit allowEmptyResults: true,
+                testResults: 'build/test-results/test/*.xml'
         }
 
         success {
             echo 'CI PIPELINE COMPLETED SUCCESSFULLY!'
+            echo 'JAR artifact archived successfully!'
         }
 
         failure {
